@@ -51,7 +51,7 @@ def plotar_grafo(grafo):
         edge_color='gray', 
         width=2,
         arrowstyle='->', 
-        arrowsize=20, 
+        arrowsize=60, 
         connectionstyle='arc3,rad=0.1'  # Curva as arestas para que fiquem visíveis
     )
     
@@ -63,6 +63,7 @@ def plotar_grafo(grafo):
         no: f"{grafo.nodes[no]['tipo']} ({grafo.nodes[no].get('tensao', grafo.nodes[no].get('resistencia', ''))})"
         for no in grafo.nodes()
     }
+    
     nx.draw_networkx_labels(grafo, pos, labels=atributos_labels, font_size=10, font_color='darkred', verticalalignment='bottom')
 
     plt.title("Visualização do Grafo do Circuito")
