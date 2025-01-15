@@ -19,7 +19,7 @@ def criar_grafo_a_partir_de_txt(caminho_txt):
             id_objeto = int(partes[0])  # ID do objeto
             tipo_objeto = partes[1]     # Tipo do objeto (F ou R)
             valor = float(partes[2])    # Tensão (para F) ou resistência (para R)
-            id_destino = int(partes[3]) # ID para onde o nó aponta
+            id_destinos = list(map(int, partes[3].split(';'))) # ID para onde o nó aponta | Podem exister vários destinos (circuito paralelo).
             
             # Cria um dicionário de atributos
             atributos = {'tipo': tipo_objeto}
@@ -28,8 +28,9 @@ def criar_grafo_a_partir_de_txt(caminho_txt):
             elif tipo_objeto == 'R':
                 atributos['resistencia'] = valor
             
-            grafo.add_node(id_objeto, **atributos)
-            grafo.add_edge(id_objeto, id_destino)
+            grafo.add_node(id_objeto, **atributos) #Agora aqui todos os destinos são atribuidos
+            for destino in id_destinos:
+                grafo.add_edge(id_objeto, destino)
 
     return grafo
 
@@ -37,10 +38,10 @@ def plotar_grafo(grafo):
     plt.figure(figsize=(8, 6))  # Define o tamanho da figura
     
     # Gera uma posição para os nós
-    pos = nx.spring_layout(grafo, seed=42)  # Layout do grafo
+    pos = nx.spring_layout(grafo, seed=42, k=0.3)  # Layout do grafo usando o spring layout pra aproximar os nós
     
     # Desenha os nós
-    nx.draw_networkx_nodes(grafo, pos, node_color='lightblue', node_size=1000)
+    nx.draw_networkx_nodes(grafo, pos, node_color='lightblue', node_size=3000, edgecolors='black')
     
     # Desenha as arestas de forma paralela para visualização clara
     nx.draw_networkx_edges(
@@ -48,9 +49,10 @@ def plotar_grafo(grafo):
         pos, 
         edgelist=grafo.edges(), 
         edge_color='gray', 
+        width=2,
         arrowstyle='->', 
         arrowsize=20, 
-        connectionstyle='arc3,rad=0.2'  # Curva as arestas para que fiquem visíveis
+        connectionstyle='arc3,rad=0.1'  # Curva as arestas para que fiquem visíveis
     )
     
     # Adiciona rótulos de ID dos nós
