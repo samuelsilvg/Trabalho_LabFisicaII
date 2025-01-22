@@ -43,19 +43,18 @@ def normalizar_equacoes(equacoes):
     equacoes_normalizadas = []
 
     for equacao in equacoes:
-        # Substituir "++" (com ou sem espaços) por "+"
+        # Substitui "++"  por "+"
         equacao = re.sub(r'\+\s*\+', '+', equacao)
 
-        # Substituir "+-" ou "-+" (com ou sem espaços) por "-"
+        # Substitui "+-" ou "-+" por "-"
         equacao = re.sub(r'\+\s*-\s*|\-\s*\+\s*', '-', equacao)
 
-        # Substituir "--" (com ou sem espaços) por "+"
+        # Substitui "--" por "-"
         equacao = re.sub(r'-\s*-', '-', equacao)
 
         # Remover sinais de "+" no início da equação
         equacao = re.sub(r'^\s*\+', '', equacao)
 
-        # Adicionar a equação normalizada à lista
         equacoes_normalizadas.append(equacao)
 
     return equacoes_normalizadas
