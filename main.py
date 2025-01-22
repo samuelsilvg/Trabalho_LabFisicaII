@@ -108,18 +108,18 @@ def plotar_grafo(grafo):
     plt.show()
 
 
-# MAIN
-caminho = 'circuito.txt'
-grafo = criar_grafo_a_partir_de_txt(caminho)
+if __name__ == "__main__":
+    caminho = 'circuito.txt'
+    grafo = criar_grafo_a_partir_de_txt(caminho)
 
-# Exibe os nós e as arestas do grafo
-print("Nós do grafo:")
-for no, atributos in grafo.nodes(data=True):
-    print(f"Nó {no}: {atributos}")
+    # Exibe os nós e as arestas do grafo
+    print("Nós do grafo:")
+    for no, atributos in grafo.nodes(data=True):
+        print(f"Nó {no}: {atributos}")
 
-print("\nArestas do grafo:")
-for aresta in grafo.edges(data=True):
-    print(f"Aresta {aresta}")
+    print("\nArestas do grafo:")
+    for aresta in grafo.edges(data=True):
+        print(f"Aresta {aresta}")
 
-# Plota o grafo
-plotar_grafo(grafo)
+    # Plota o grafo
+    plotar_grafo(grafo)
