@@ -1,4 +1,5 @@
 import networkx as nx
+import re
 
 def gerar_caminhos(grafo):
     caminhos = list(nx.simple_cycles(grafo))
@@ -37,3 +38,24 @@ def gerar_equacoes(grafo, malhas):
         equacoes.append(" + ".join(equacao) + " = 0")
     
     return equacoes, correntes
+
+def normalizar_equacoes(equacoes):
+    equacoes_normalizadas = []
+
+    for equacao in equacoes:
+        # Substituir "++" (com ou sem espaços) por "+"
+        equacao = re.sub(r'\+\s*\+', '+', equacao)
+
+        # Substituir "+-" ou "-+" (com ou sem espaços) por "-"
+        equacao = re.sub(r'\+\s*-\s*|\-\s*\+\s*', '-', equacao)
+
+        # Substituir "--" (com ou sem espaços) por "+"
+        equacao = re.sub(r'-\s*-', '-', equacao)
+
+        # Remover sinais de "+" no início da equação
+        equacao = re.sub(r'^\s*\+', '', equacao)
+
+        # Adicionar a equação normalizada à lista
+        equacoes_normalizadas.append(equacao)
+
+    return equacoes_normalizadas

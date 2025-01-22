@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 
-from percorre import gerar_caminhos, gerar_equacoes
+from percorre import gerar_caminhos, gerar_equacoes, normalizar_equacoes
 
 def criar_grafo_a_partir_de_txt(caminho_txt):
     grafo = nx.DiGraph()
@@ -130,6 +130,7 @@ if __name__ == "__main__":
     print("\n\nEquações do circuito: \n")
      
     equacoes, correntes = gerar_equacoes(grafo, malhas)
+    equacoes = normalizar_equacoes(equacoes)
 
     for i, eq in enumerate(equacoes, 1):
         print(f"Equação da Malha {i}: {eq}")
