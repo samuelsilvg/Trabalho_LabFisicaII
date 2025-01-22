@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 
+from percorre import gerar_caminhos, gerar_equacoes
+
 def criar_grafo_a_partir_de_txt(caminho_txt):
     grafo = nx.DiGraph()
     id_intermediario = 1000  # ID inicial para nós intermediários (números altos para evitar conflitos)
@@ -111,6 +113,7 @@ def plotar_grafo(grafo):
 if __name__ == "__main__":
     caminho = 'circuito.txt'
     grafo = criar_grafo_a_partir_de_txt(caminho)
+    malhas = gerar_caminhos(grafo)
 
     # Exibe os nós e as arestas do grafo
     print("Nós do grafo:")
@@ -120,6 +123,16 @@ if __name__ == "__main__":
     print("\nArestas do grafo:")
     for aresta in grafo.edges(data=True):
         print(f"Aresta {aresta}")
+        
+    
+    # teste das equaçoes
+        
+    print("\n\nEquações do circuito: \n")
+     
+    equacoes, correntes = gerar_equacoes(grafo, malhas)
+
+    for i, eq in enumerate(equacoes, 1):
+        print(f"Equação da Malha {i}: {eq}")
 
     # Plota o grafo
     plotar_grafo(grafo)

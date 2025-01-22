@@ -1,11 +1,9 @@
-from main import nx, np, plt, criar_grafo_a_partir_de_txt
+import networkx as nx
 
-caminho = 'circuito.txt'
-grafo = criar_grafo_a_partir_de_txt(caminho)
-
-caminhos = list(nx.simple_cycles(grafo))
-
-print(caminhos)
+def gerar_caminhos(grafo):
+    caminhos = list(nx.simple_cycles(grafo))
+    
+    return caminhos
 
 def gerar_equacoes(grafo, malhas):
     equacoes = []
@@ -39,11 +37,3 @@ def gerar_equacoes(grafo, malhas):
         equacoes.append(" + ".join(equacao) + " = 0")
     
     return equacoes, correntes
-
-# ---------- teste
-
-malhas = caminhos
-equacoes, correntes = gerar_equacoes(grafo, malhas)
-
-for i, eq in enumerate(equacoes, 1):
-    print(f"Equação da Malha {i}: {eq}")
