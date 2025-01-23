@@ -9,12 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 
-from percorre import gerar_caminhos, gerar_equacoes, normalizar_equacoes
+from percorre import gerar_caminhos, gerar_equacoes, normalizar_equacoes, simplificar_correntes
 
 def criar_grafo_a_partir_de_txt(caminho_txt):
     grafo = nx.DiGraph()
-    id_intermediario = 1000  # ID inicial para nós intermediários (números altos para evitar conflitos)
-    
+    id_intermediario = 1000  # ID inicial para nós intermediários (evitar conflitos)
+    destinos_compartilhados = {}  # Mapeia destinos compartilhados para identificar intermediários
+
     # Lê o arquivo linha por linha
     with open(caminho_txt, 'r') as arquivo:
         for linha in arquivo:
@@ -34,30 +35,51 @@ def criar_grafo_a_partir_de_txt(caminho_txt):
                     atributos['tensao'] = no.valor
                 elif no.tipo == 'R':
                     atributos['resistencia'] = no.valor
-                
+
                 grafo.add_node(no.id, **atributos)
 
-                # Se houver múltiplos destinos, cria um nó intermediário
+                # Caso o nó tenha múltiplos destinos, cria um nó intermediário
                 if len(no.destinos) > 1:
-                    # Adiciona o nó intermediário
                     grafo.add_node(id_intermediario, tipo='Nó')
                     grafo.add_edge(no.id, id_intermediario)
 
-                    # Conecta o nó intermediário aos destinos
                     for destino in no.destinos:
                         grafo.add_edge(id_intermediario, destino)
                     
-                    # Incrementa o ID do nó intermediário para o próximo
+                    # Incrementa o ID do nó intermediário
                     id_intermediario += 1
                 else:
-                    # Se houver apenas um destino, conecta diretamente
+                    # Caso contrário, conecta diretamente ao único destino
                     for destino in no.destinos:
                         grafo.add_edge(no.id, destino)
+
+                # Atualiza os destinos compartilhados
+                for destino in no.destinos:
+                    if destino not in destinos_compartilhados:
+                        destinos_compartilhados[destino] = []  # Inicializa lista de fontes para o destino
+                    destinos_compartilhados[destino].append(no.id)
+
             except Exception as e:
                 print(f"Erro ao processar a linha: {linha}. Detalhes do erro: {e}")
-                
-    return grafo
 
+    # Verifica destinos compartilhados e cria nós intermediários adicionais, se necessário
+    for destino, fontes in destinos_compartilhados.items():
+        if len(fontes) > 1:
+            # Cria um nó intermediário para as conexões compartilhadas
+            grafo.add_node(id_intermediario, tipo='Nó')
+
+            # Conecta os nós que apontavam diretamente para o destino ao nó intermediário
+            for fonte in fontes:
+                # Remove a aresta direta antes de criar a intermediária
+                if grafo.has_edge(fonte, destino):
+                    grafo.remove_edge(fonte, destino)
+                grafo.add_edge(fonte, id_intermediario)
+
+            # Conecta o nó intermediário ao destino
+            grafo.add_edge(id_intermediario, destino)
+            id_intermediario += 1
+
+    return grafo
 
 def plotar_grafo(grafo):
     plt.figure(figsize=(12, 9))  # Define o tamanho da figura
@@ -129,11 +151,23 @@ if __name__ == "__main__":
         
     print("\n\nEquações do circuito: \n")
      
-    equacoes, correntes = gerar_equacoes(grafo, malhas)
-    equacoes = normalizar_equacoes(equacoes)
+equacoes, correntes = gerar_equacoes(grafo, malhas)
+equacoes = normalizar_equacoes(equacoes)
 
-    for i, eq in enumerate(equacoes, 1):
-        print(f"Equação da Malha {i}: {eq}")
+# Simplifica correntes equivalentes
+substituicoes = simplificar_correntes(grafo, correntes)
 
-    # Plota o grafo
-    plotar_grafo(grafo)
+# Aplica as substituições às equações
+equacoes_simplificadas = []
+for equacao in equacoes:
+    for antiga, nova in substituicoes.items():
+        equacao = equacao.replace(antiga, nova)
+    equacoes_simplificadas.append(equacao)
+
+# Exibe as equações simplificadas
+print("\nEquações Simplificadas:")
+for i, eq in enumerate(equacoes_simplificadas, 1):
+    print(f"Equação da Malha {i}: {eq}")
+
+# Plota o grafo
+plotar_grafo(grafo)
