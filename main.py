@@ -9,9 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 from tkinter import messagebox
+from sympy import symbols, Eq, solve, sympify
+import re
 
 # Funcoes importadas de outros arquivos .py:
-from percorre import gerar_caminhos, gerar_equacoes, normalizar_equacoes, simplificar_correntes
+from percorre import gerar_caminhos, gerar_equacoes, normalizar_equacoes, simplificar_correntes, normalizar_incognitas, remover_indices_desnecessarios, resolver_equacoes
 
 #==========================================================================#
 # FUNÇÕES DE GERAÇÃO:
@@ -137,7 +139,7 @@ def plotar_grafo(grafo):
     plt.show()
 
 def rotina_geradora():
-    caminho = 'texts/circuito.txt'
+    caminho = 'circuito.txt'
     grafo = criar_grafo_a_partir_de_txt(caminho)
     malhas = gerar_caminhos(grafo)
 
@@ -152,7 +154,7 @@ def rotina_geradora():
         
     
     # teste das equaçoes
-    print("\n\nEquações do circuito: \n")
+    #print("\n\nEquações do circuito: \n")
      
     equacoes, correntes = gerar_equacoes(grafo, malhas)
     equacoes = normalizar_equacoes(equacoes)
@@ -168,13 +170,20 @@ def rotina_geradora():
         equacoes_simplificadas.append(equacao)
 
     # Exibe as equações simplificadas e salva em txt
-    with open("texts/equacoes.txt", "w") as file:
-        print("\nEquações Simplificadas:")
+    with open("equacoes.txt", "w") as file:
+        #print("\nEquações Simplificadas:")
         for i, eq in enumerate(equacoes_simplificadas, 1):
-            print(f"Equação da Malha {i}: {eq}")
+            #print(f"Equação da Malha {i}: {eq}")
             file.write(f"Equação da Malha {i}: {eq}\n")
 
-    #plotar_grafo(grafo) 
+    equacoes_normalizadas = [normalizar_incognitas(eq) for eq in equacoes_simplificadas]
+    equacoes_simplificadas = [remover_indices_desnecessarios(eq) for eq in equacoes_normalizadas]
+    solucoes = resolver_equacoes(equacoes_simplificadas[:3])
+    
+    with open("texts/solucoes.txt", "w") as file:
+        for var, valor in solucoes.items():
+            file.write(f"{var} = {valor.evalf():.4f} A\n")
+    return equacoes_simplificadas
 
 #==========================================================================#
 # FUNÇÕES DE INTERFACE:
@@ -233,8 +242,24 @@ def iniciar_interface():
 
         btn_voltar = tk.Button(janela3, text = 'Fechar', command=janela3.destroy, font=("Consolas", 11), justify="center")
         btn_voltar.pack(pady=5)
+    
+    def gerar_janela4():
         
-
+        #Janela 4
+        janela4= tk.Toplevel()
+        janela4.title("Solução das Correntes")
+        janela4.geometry("600x600")
+        
+        eq_txt = tk.Text(janela4)
+        eq_txt.pack(fill="both", expand=True)
+        
+        with open("texts/solucoes.txt", "r") as file:
+            respostas = file.read()
+            eq_txt.insert(tk.END, respostas)
+            
+        btn_voltar = tk.Button(janela4, text = 'Fechar', command=janela4.destroy, font=("Consolas", 11), justify="center")
+        btn_voltar.pack(pady=5)
+        
     # Criação da janela
     janela = tk.Tk()
     janela.title("Simulador de Circuitos com Grafo")
@@ -250,7 +275,10 @@ def iniciar_interface():
 
     btn_carregar = tk.Button(janela, text="Carregar Arquivo e Processar", command=gerar_janela3, font=("Consolas", 11), justify="center")
     btn_carregar.pack(pady=10)
-
+    
+    btn_carregar = tk.Button(janela, text = "Solução das Correntes", command=gerar_janela4, font=("Consolas", 11), justify="center")
+    btn_carregar.pack(pady=10)
+    
     btn_sair = tk.Button(janela, text="Sair", command=janela.destroy, font=("Consolas", 11))
     btn_sair.pack(pady=10)
 
@@ -259,6 +287,8 @@ def iniciar_interface():
 
 #==========================================================================#
 # MAIN:
+
 rotina_geradora()
 iniciar_interface()
+
 #==========================================================================#

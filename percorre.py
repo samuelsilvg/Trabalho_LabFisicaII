@@ -1,5 +1,7 @@
 import networkx as nx
 import re
+import sympy as sp
+
 
 def gerar_caminhos(grafo):
     caminhos = list(nx.simple_cycles(grafo))
@@ -91,3 +93,39 @@ def simplificar_correntes(grafo, correntes):
                 substituicoes[corrente_saida] = corrente_entrada  # Substitui a saída pela entrada
 
     return substituicoes
+
+def normalizar_incognitas(equacao):
+    # Função para reformatar cada variável encontrada
+    def ordenar_variavel(match):
+        x, y = sorted(match.groups(), key=int)
+        return f"I_{x}_{y}"
+
+    # Substituir todas as ocorrências de I_x_y pela forma ordenada
+    equacao_normalizada = re.sub(r'I_(\d+)_(\d+)', ordenar_variavel, equacao)
+    return equacao_normalizada
+
+
+def remover_indices_desnecessarios(equacao):
+    # Substituir todas as ocorrências de _1000 ou _1001 por uma string vazia
+    equacao_simplificada = re.sub(r'(_1000|_1001)', '', equacao)
+    return equacao_simplificada
+
+def resolver_equacoes(equacoes):
+    variaveis = set()
+    equacoes_sympy = []
+
+    for eq in equacoes:
+        # Extrair variáveis da equação usando regex
+        variaveis_encontradas = re.findall(r'I_\d+', eq)
+        variaveis.update(variaveis_encontradas)
+
+        # Converter a equação para uma expressão sympy
+        eq_sympy = sp.sympify(eq.replace('=', '-(') + ')')  # Transforma "a = b" em "a - (b) = 0"
+        equacoes_sympy.append(eq_sympy)
+
+    # Definir as variáveis simbólicas no SymPy
+    variaveis_sympy = sp.symbols(' '.join(variaveis))
+
+    # Resolver o sistema de equações
+    solucoes = sp.solve(equacoes_sympy, variaveis_sympy)
+    return solucoes
